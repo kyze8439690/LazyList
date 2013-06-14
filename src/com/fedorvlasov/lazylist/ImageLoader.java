@@ -18,6 +18,7 @@ import android.os.Handler;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.widget.ImageView;
 
 public class ImageLoader {
@@ -27,13 +28,14 @@ public class ImageLoader {
     private Map<ImageView, String> imageViews=Collections.synchronizedMap(new WeakHashMap<ImageView, String>());
     ExecutorService executorService;
     Handler handler=new Handler();//handler to display images in UI thread
+    private Drawable loadingDrawable;
     
-    public ImageLoader(Context context){
-        fileCache=new FileCache(context);
+    public ImageLoader(Context context, String cacheUrl, Drawable loadingImage){
+        fileCache=new FileCache(context, cacheUrl);
+        loadingDrawable = loadingImage;
         executorService=Executors.newFixedThreadPool(5);
     }
     
-    final int stub_id=R.drawable.stub;
     public void DisplayImage(String url, ImageView imageView)
     {
         imageViews.put(imageView, url);
@@ -43,7 +45,7 @@ public class ImageLoader {
         else
         {
             queuePhoto(url, imageView);
-            imageView.setImageResource(stub_id);
+            imageView.setImageDrawable(loadingDrawable);
         }
     }
         
@@ -96,16 +98,16 @@ public class ImageLoader {
             stream1.close();
             
             //Find the correct scale value. It should be the power of 2.
-            final int REQUIRED_SIZE=70;
-            int width_tmp=o.outWidth, height_tmp=o.outHeight;
+//            final int REQUIRED_SIZE=70;
+//            int width_tmp=o.outWidth, height_tmp=o.outHeight;
             int scale=1;
-            while(true){
-                if(width_tmp/2<REQUIRED_SIZE || height_tmp/2<REQUIRED_SIZE)
-                    break;
-                width_tmp/=2;
-                height_tmp/=2;
-                scale*=2;
-            }
+//            while(true){
+//                if(width_tmp/2<REQUIRED_SIZE || height_tmp/2<REQUIRED_SIZE)
+//                    break;
+//                width_tmp/=2;
+//                height_tmp/=2;
+//                scale*=2;
+//            }
             
             //decode with inSampleSize
             BitmapFactory.Options o2 = new BitmapFactory.Options();
@@ -176,7 +178,7 @@ public class ImageLoader {
             if(bitmap!=null)
                 photoToLoad.imageView.setImageBitmap(bitmap);
             else
-                photoToLoad.imageView.setImageResource(stub_id);
+                photoToLoad.imageView.setImageDrawable(loadingDrawable);
         }
     }
 
